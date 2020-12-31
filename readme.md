@@ -8,6 +8,8 @@ npm add unyielding
 
 ## Examples
 
+### Components
+
 ```javascript
 import { html, renderToString } from "unyielding";
 
@@ -43,11 +45,25 @@ function* PrimaryNav() {
 const html = await renderToString([PrimaryNav()]);
 ```
 
+### Attributes
+
+```javascript
+import { attributes, html } from "unyielding";
+
+function CreatePhotoForm() {
+  yield html`<form ${attributes({ method: 'post', action: '/photo' })}>`;
+  // …
+  yield html`</form>`;
+}
+```
+
 ### Data attributes
 
 ```javascript
-function Item({ id, title }) {
-  yield html`<article ${dataset({ id })}>`;
+import { dataset, html } from "unyielding";
+
+function Item({ uuid, title }) {
+  yield html`<article ${dataset({ uuid })}>`;
   yield html`<h2>`;
   yield title;
   yield html`</h2>`;
