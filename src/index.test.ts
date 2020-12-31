@@ -1,4 +1,4 @@
-import { renderToString, html, unique } from "./index";
+import { renderToString, html, unique, attributes, dataset } from "./index";
 import { generateUniqueID } from "./unique";
 
 jest.mock("./unique.ts");
@@ -24,14 +24,14 @@ describe("renderToString()", () => {
 
   test("array of simple strings and HTML", async () => {
     await expect(renderToString(["abc", "<br>", "def"])).resolves.toEqual(
-      "abc<br>def"
+      "abc&lt;br&gt;def"
     );
   });
 
   test("array of simple strings and HTML and angled brackets", async () => {
     await expect(
       renderToString(["abc", "<br>", "2 > 1", "<br>", "0 < 3"])
-    ).resolves.toEqual("abc<br>2 &gt; 1<br>0 &lt; 3");
+    ).resolves.toEqual("abc&lt;br&gt;2 &gt; 1&lt;br&gt;0 &lt; 3");
   });
 
   test("array of unsafe HTML values", async () => {
@@ -148,17 +148,95 @@ describe("renderToString()", () => {
     ).resolves.toEqual("first|UNIQUE1||UNIQUE2|second|UNIQUE3|third");
   });
 
+  describe("html``", () => {
+    test("just html", async () => {
+      await expect(
+        renderToString([html`<div>Some content</div>`])
+      ).resolves.toEqual("<div>Some content</div>");
+    });
+
+    test("interpolated string", async () => {
+      await expect(
+        renderToString([html`<div>Some ${'dynamic'} content</div>`])
+      ).resolves.toEqual("<div>Some dynamic content</div>");
+    });
+
+    test("interpolated string promise", async () => {
+      await expect(
+        renderToString([html`<div>Some ${Promise.resolve('dynamic')} content</div>`])
+      ).resolves.toEqual("<div>Some dynamic content</div>");
+    });
+
+    test("interpolated number", async () => {
+      await expect(
+        renderToString([html`<div>Some ${123} number</div>`])
+      ).resolves.toEqual("<div>Some 123 number</div>");
+    });
+
+    test("interpolated number promise", async () => {
+      await expect(
+        renderToString([html`<div>Some ${Promise.resolve(123)} number</div>`])
+      ).resolves.toEqual("<div>Some 123 number</div>");
+    });
+
+    test("interpolated HTML is escaped", async () => {
+      await expect(
+        renderToString([html`<div>Some ${'<div>dynamic</div>'} content</div>`])
+      ).resolves.toEqual("<div>Some &lt;div&gt;dynamic&lt;/div&gt; content</div>");
+    });
+
+    test("interpolated HTML promise is escaped", async () => {
+      await expect(
+        renderToString([html`<div>Some ${Promise.resolve('<div>dynamic</div>')} content</div>`])
+      ).resolves.toEqual("<div>Some &lt;div&gt;dynamic&lt;/div&gt; content</div>");
+    });
+  });
+
+  describe("attributes()", () => {
+    test("passing object", async () => {
+      await expect(
+        renderToString([html`<div ${attributes({ first: '1', second: '2' })}>Some content</div>`])
+      ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
+    });
+    
+    test("passing map", async () => {
+      await expect(
+        renderToString([html`<div ${attributes(new Map([['first', '1'], ['second', '2']]))}>Some content</div>`])
+        ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
+      });
+
+      test("passing object with promised values", async () => {
+        await expect(
+          renderToString([html`<div ${attributes({ first: Promise.resolve('1'), second: Promise.resolve('2') })}>Some content</div>`])
+        ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
+      });
+  });
+
+  describe("dataset()", () => {
+    test("passing object", async () => {
+      await expect(
+        renderToString([html`<div ${dataset({ "kebab-key": '1', camelCaseKey: '2' })}>Some content</div>`])
+      ).resolves.toEqual(`<div data-kebab-key="1" data-camel-case-key="2">Some content</div>`);
+    });
+
+    test("passing map", async () => {
+      await expect(
+        renderToString([html`<div ${dataset(new Map([['kebab-key', '1'], ['camelCaseKey', '2']]))}>Some content</div>`])
+      ).resolves.toEqual(`<div data-kebab-key="1" data-camel-case-key="2">Some content</div>`);
+    });
+  });
+
   describe("components", () => {
     function* Div(content) {
-      yield "<div>";
+      yield html`<div>`;
       yield content;
-      yield "</div>";
+      yield html`</div>`;
     }
 
     function* Term(content) {
-      yield "<dt>";
+      yield html`<dt>`;
       yield Div(content);
-      yield "</dt>\n";
+      yield html`</dt>\n`;
     }
 
     function soon(delay) {
@@ -170,15 +248,15 @@ describe("renderToString()", () => {
     }
 
     function* Definition(content) {
-      yield "<dd>";
+      yield html`<dd>`;
       yield Promise.resolve(soon(1)).then(() => content);
-      yield "</dd>\n";
+      yield html`</dd>\n`;
     }
 
     function* DefinitionList(content) {
-      yield "<dl>\n";
+      yield html`<dl>\n`;
       yield content;
-      yield "</dl>\n";
+      yield html`</dl>\n`;
     }
 
     function* Example() {

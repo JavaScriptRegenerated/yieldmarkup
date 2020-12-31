@@ -8,27 +8,27 @@ npm add unyielding
 
 ## Examples
 
-```ts
+```javascript
 import { html, renderToString } from "unyielding";
 
 function Nav(links) {
-  yield '<nav aria-label="Primary">';
-  yield '<ul>';
+  yield html`<nav aria-label="Primary">`;
+  yield html`<ul>`;
 
   for (const link of links) {
     yield NavLink(link);
   }
 
-  yield '</ul>';
-  yield '</nav>';
+  yield html`</ul>`;
+  yield html`</nav>`;
 }
 
 function NavLink(link) {
-  yield '<li>';
+  yield html`<li>`;
   yield html`<a href="${link.url}">`;
   yield link.title;
-  yield '</a>';
-  yield '<li>';
+  yield html`</a>`;
+  yield html`<li>`;
 }
 
 async function (request) {
@@ -40,5 +40,17 @@ async function (request) {
       { url: '/terms', title: 'Terms & Conditions' },
     ])
   ]);
+}
+```
+
+### Data attributes
+
+```javascript
+function Item({ id, title }) {
+  yield html`<article ${dataset({ id })}>`;
+  yield '<h2>';
+  yield title;
+  yield '</h2>';
+  yield '</article>';
 }
 ```

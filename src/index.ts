@@ -1,5 +1,7 @@
 import { generateUniqueID } from "./unique";
 
+export type PresentableValue = string | number | Promise<PresentableValue>;
+
 const map = { "&": "amp", "<": "lt", ">": "gt", '"': "quot", "'": "#039" };
 function escapeToHTML(input) {
   // return input.replace(/[&<>"']/g, (s) => `&${map[s]};`);
@@ -9,11 +11,7 @@ function escapeToHTML(input) {
 function processValue(value) {
   if (typeof value === "number") {
     return `${value}`;
-  } else if (/^\s*[<]/.test(value)) {
-    // Treat as already safe HTML
-    return value;
   } else {
-    // Escape to safe HTML
     return escapeToHTML(value);
   }
 }
@@ -24,12 +22,15 @@ function processValue(value) {
  */
 export function* renderGenerator(iteratable) {
   function* process(child) {
-    if (child == null || child == false) return;
+    if (child == null || child === false) return;
 
     if (typeof child === "string" || typeof child === "number") {
       yield processValue(child);
     } else if (child === Symbol.for("unique")) {
       yield generateUniqueID("unique");
+    } else if (child instanceof String) {
+      // String objects are taken to be html-safe
+      yield child;
     } else if (typeof child.then === "function") {
       yield child.then((result) => Promise.all(process(result)));
     } else if (child[Symbol.iterator]) {
@@ -54,11 +55,47 @@ export async function renderToString(children) {
 
 export function* html(literals, ...values) {
   for (let i = 0; i < literals.length; i++) {
-    yield literals[i];
+    yield new String(literals[i]); // Mark as html-safe by converting to string object
     if (values[i] != null && values[i] !== false) {
       yield values[i];
     }
   }
+}
+
+export function* attributes(
+  items: Record<string, PresentableValue> | Iterable<[string, PresentableValue]>
+) {
+  const iterable = items[Symbol.iterator]
+    ? (items as Iterable<[string, PresentableValue]>)
+    : Object.entries(items);
+
+  let count = 0;
+  for (const [key, value] of iterable) {
+    if (count > 0) yield " ";
+    yield key;
+    yield "=";
+    yield '"';
+    yield value;
+    yield '"';
+    count += 1;
+  }
+}
+
+export function* dataset(
+  items: Record<string, PresentableValue> | Iterable<[string, PresentableValue]>
+) {
+  const iterable = items[Symbol.iterator]
+    ? (items as Iterable<[String, String]>)
+    : Object.entries(items);
+
+  yield* attributes(
+    (function* () {
+      for (const [key, value] of iterable) {
+        const keyKebab = key.replace(/[A-Z]/g, "-$&").toLowerCase();
+        yield [`data-${keyKebab}`, value] as [string, PresentableValue];
+      }
+    })()
+  );
 }
 
 export function unique() {
