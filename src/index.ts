@@ -18,9 +18,9 @@ function processValue(value) {
 
 /**
  *
- * @param {Generator} iteratable
+ * @param {Generator} iterable
  */
-export function* renderGenerator(iteratable) {
+export function* renderGenerator(iterable) {
   function* process(child) {
     if (child == null || child === false) return;
 
@@ -38,7 +38,7 @@ export function* renderGenerator(iteratable) {
     }
   }
 
-  for (const child of iteratable) {
+  for (const child of iterable) {
     yield* process(child);
   }
 }
