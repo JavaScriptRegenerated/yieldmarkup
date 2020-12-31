@@ -1,4 +1,11 @@
-import { renderToString, html } from "./index";
+import { renderToString, html, unique } from "./index";
+import { generateUniqueID } from "./unique";
+
+jest.mock("./unique.ts");
+(generateUniqueID as jest.Mock).mockImplementation(function() {
+  this.id = (this.id || 0) + 1;
+  return `|UNIQUE${this.id}|`;
+});
 
 describe("renderToString()", () => {
   const htmlStart = `<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width">`;
@@ -43,6 +50,12 @@ describe("renderToString()", () => {
     await expect(
       renderToString([Promise.resolve("abc"), Promise.resolve("def")])
     ).resolves.toEqual("abcdef");
+  });
+
+  test("array of HTML string promises", async () => {
+    await expect(
+      renderToString([Promise.resolve(`abc <>&'"`), Promise.resolve("def")])
+    ).resolves.toEqual(`abc &lt;&gt;&amp;'"def`);
   });
 
   test("array of simple string and falsey promises", async () => {
@@ -114,6 +127,34 @@ describe("renderToString()", () => {
         "last",
       ])
     ).resolves.toEqual("first|abc||def|last");
+  });
+
+  test("deeply nested generator functions yielding promises of HTML", async () => {
+    function* genPromise() {
+      yield Promise.resolve("|gen.promise <>|")
+    }
+    function* genPromiseOuter() {
+      yield Promise.resolve(genPromise())
+    }
+
+    await expect(
+      renderToString([
+        "first",
+        genPromiseOuter(),
+        "last",
+      ])
+    ).resolves.toEqual("first|gen.promise &lt;&gt;|last");
+  });
+
+  test("unique", async () => {
+    await expect(renderToString([
+      "first",
+      unique(),
+      unique(),
+      "second",
+      unique(),
+      "third"
+    ])).resolves.toEqual("first|UNIQUE1||UNIQUE2|second|UNIQUE3|third");
   });
 
   describe("components", () => {

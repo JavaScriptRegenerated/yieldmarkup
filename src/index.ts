@@ -1,3 +1,5 @@
+import { generateUniqueID } from "./unique"
+
 const map = { '&': 'amp', '<': 'lt', '>': 'gt', '"': 'quot', "'": '#039' }
 function escapeToHTML(input) {
   // return input.replace(/[&<>"']/g, (s) => `&${map[s]};`);
@@ -18,35 +20,35 @@ function processValue(value) {
 
 /**
  * 
+ * @param {Generator} iteratable 
+ */
+export function* renderGenerator(iteratable) {
+  function* process(child) {
+    if (child == null || child == false) return;
+
+    if (typeof child === 'string' || typeof child === 'number') {
+      yield processValue(child)
+    } else if (child === Symbol.for("unique")) {
+      yield generateUniqueID("unique");
+    } else if (typeof child.then === 'function') {
+      yield child.then(result => Promise.all(process(result)))
+    } else if (child[Symbol.iterator]) {
+      yield* renderGenerator(child)
+    }
+  }
+
+  for (const child of iteratable) {
+    yield* process(child)
+  }
+}
+
+/**
+ * 
  * @param {Generator} children 
  * @return {Promise<string>}
  */
 export async function renderToString(children) {
-  function process(child) {
-    if (child == null || child == false) return
-
-    if (typeof child === 'string' || typeof child === 'number') {
-      return processValue(child)
-    } else if (typeof child.then === 'function') {
-      // output.push(child.then(processValue))
-      return child.then(process)
-    } else if (child[Symbol.iterator]) {
-      const inner = []
-      consumeIterable(child, inner)
-      return Promise.all(inner).then(items => items.filter(Boolean).join(''))
-    }
-  }
-
-  function consumeIterable(iteratable, output) {
-    for (const child of iteratable) {
-      output.push(process(child))
-    }
-  }
-
-  const root = []
-  consumeIterable(children, root)
-
-  const resolved = await Promise.all(root);
+  const resolved = await Promise.all(renderGenerator(children));
   return resolved.filter(Boolean).join('')
 }
 
@@ -57,4 +59,8 @@ export function* html(literals, ...values) {
       yield values[i]
     }
   }
+}
+
+export function unique() {
+  return Symbol.for("unique");
 }
