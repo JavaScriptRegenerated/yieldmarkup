@@ -18,7 +18,7 @@ function processValue(value) {
 
 /**
  *
- * @param {Generator} iterable
+ * @param {Iterable<PresentableValue>} iterable
  */
 export function* renderGenerator(iterable) {
   function* process(child) {
@@ -40,6 +40,39 @@ export function* renderGenerator(iterable) {
 
   for (const child of iterable) {
     yield* process(child);
+  }
+}
+
+/**
+ *
+ * @param {Iterable<PresentableValue>} iterable
+ */
+export function* renderGenerator2(iterable) {
+  const iterator = iterable[Symbol.iterator]();
+  let done = false;
+  let next;
+  while (!done) {
+    const current = iterator.next(next);
+    const child = current.value;
+    done = current.done;
+    next = undefined;
+
+    if (child == null || child === false) continue;
+
+    if (typeof child === "string" || typeof child === "number") {
+      yield processValue(child);
+    } else if (child === Symbol.for("unique")) {
+      const id = generateUniqueID("unique");
+      next = id;
+      yield id;
+    } else if (child instanceof String) {
+      // String objects are taken to be html-safe
+      yield child;
+    } else if (typeof child.then === "function") {
+      yield child.then((result) => Promise.all(renderGenerator([result])));
+    } else if (child[Symbol.iterator]) {
+      yield* renderGenerator(child);
+    }
   }
 }
 
