@@ -11,7 +11,15 @@ npm add unyielding
 ```javascript
 import { html, renderToString } from "unyielding";
 
-function Nav(links) {
+function* NavLink(link) {
+  yield html`<li>`;
+  yield html`<a href="${link.url}">`;
+  yield link.title;
+  yield html`</a>`;
+  yield html`<li>`;
+}
+
+function* Nav(links) {
   yield html`<nav aria-label="Primary">`;
   yield html`<ul>`;
 
@@ -23,24 +31,16 @@ function Nav(links) {
   yield html`</nav>`;
 }
 
-function NavLink(link) {
-  yield html`<li>`;
-  yield html`<a href="${link.url}">`;
-  yield link.title;
-  yield html`</a>`;
-  yield html`<li>`;
-}
-
-async function (request) {
-  return await renderToString([
-    Nav([
-      { url: '/', title: 'Home' },
-      { url: '/pricing', title: 'Pricing' },
-      { url: '/features', title: 'Features' },
-      { url: '/terms', title: 'Terms & Conditions' },
-    ])
+function* PrimaryNav() {
+  yield Nav([
+    { url: '/', title: 'Home' },
+    { url: '/pricing', title: 'Pricing' },
+    { url: '/features', title: 'Features' },
+    { url: '/terms', title: 'Terms & Conditions' },
   ]);
 }
+
+const html = await renderToString([PrimaryNav()]);
 ```
 
 ### Data attributes
@@ -48,9 +48,52 @@ async function (request) {
 ```javascript
 function Item({ id, title }) {
   yield html`<article ${dataset({ id })}>`;
-  yield '<h2>';
+  yield html`<h2>`;
   yield title;
-  yield '</h2>';
-  yield '</article>';
+  yield html`</h2>`;
+  yield html`</article>`;
+}
+```
+
+## TODO / Ideas
+
+```javascript
+// Yield function with name of HTML tag
+function Nav(links) {
+  yield html`<nav aria-label="Primary">`;
+
+  yield function* ul() {
+    for (const link of links) {
+      yield NavLink(link);
+    }
+  };
+
+  yield html`</nav>`;
+}
+
+// Yield function with name of landmark
+function Page() {
+  yield PrimaryNav();
+
+  yield function* main() { // <main>
+    yield Heading("Welcome!");
+  }
+
+  yield function* contentinfo() { // <footer role=contentinfo>
+    yield FooterLinks();
+  }
+}
+
+// Perhaps allow attributes to be set
+function Nav2(links) {
+  yield function* nav() {
+    yield attributes({ "aria-label": "Primary" });
+
+    yield function* ul() {
+      for (const link of links) {
+        yield NavLink(link);
+      }
+    };
+  }
 }
 ```
