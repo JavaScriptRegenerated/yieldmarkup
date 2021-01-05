@@ -1,4 +1,13 @@
-# Unyielding: Lightweight Components using Generator Functions
+<div align="center">
+  <h1>💎 Unyielding</h1>
+  <a href="https://bundlephobia.com/result?p=unyielding">
+    <img src="https://badgen.net/bundlephobia/minzip/unyielding@0.1.1" alt="minified and gzipped size">
+    <img src="https://badgen.net/bundlephobia/min/unyielding@0.1.1" alt="minified size">
+    <img src="https://badgen.net/bundlephobia/dependency-count/unyielding@0.1.1" alt="zero dependencies">
+  </a>
+</div>
+
+Lightweight Components using Generator Functions
 
 ## Install
 
