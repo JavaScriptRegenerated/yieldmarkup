@@ -1,6 +1,6 @@
 {
   "name": "unyielding",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Components with Generator Functions",
   "source": "src/index.ts",
   "main": "dist/unyielding.js",
