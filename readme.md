@@ -70,7 +70,7 @@ function* Page() {
 ;}
 
 // Resulting data waits for promises to resolve
-const html = await renderToString([PrimaryNav()]);
+const html = await renderToString([Page()]);
 ```
 
 ### Attributes
