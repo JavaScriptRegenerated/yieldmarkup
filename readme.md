@@ -21,6 +21,7 @@ npm add yieldmarkup
 
 ```javascript
 import { html, renderToString } from "yieldmarkup";
+import { fetchData } from "./yourAPI";
 
 function* NavLink(link) {
   yield html`<li>`;
@@ -51,6 +52,25 @@ function* PrimaryNav() {
   ]);
 }
 
+function* Page() {
+  yield html`<!doctype html>`
+  yield html`<html lang=en>`
+  yield html`<meta charset=utf-8>`
+  yield html`<meta name=viewport content="width=device-width">`
+  yield html`<body>`;
+  yield PrimaryNav();
+  yield html`<main>`;
+  
+  // Can await any promise
+  const data = await fetchData();
+  yield html`<pre>`;
+  yield JSON.stringify(data);
+  yield html`</pre>`;
+  
+  yield html`</main>`;
+;}
+
+// Resulting data waits for promises to resolve
 const html = await renderToString([PrimaryNav()]);
 ```
 
@@ -80,7 +100,7 @@ function Item({ uuid, title }) {
 }
 ```
 
-## TODO / Ideas
+## TODO / Future Ideas
 
 ```javascript
 // Yield function with name of HTML tag
