@@ -1,9 +1,9 @@
 <div align="center">
-  <h1>💎 Unyielding</h1>
-  <a href="https://bundlephobia.com/result?p=unyielding">
-    <img src="https://badgen.net/bundlephobia/minzip/unyielding@0.1.1" alt="minified and gzipped size">
-    <img src="https://badgen.net/bundlephobia/min/unyielding@0.1.1" alt="minified size">
-    <img src="https://badgen.net/bundlephobia/dependency-count/unyielding@0.1.1" alt="zero dependencies">
+  <h1>💎 Yield Markup</h1>
+  <a href="https://bundlephobia.com/result?p=yieldmarkup">
+    <img src="https://badgen.net/bundlephobia/minzip/yieldmarkup@0.1.0" alt="minified and gzipped size">
+    <img src="https://badgen.net/bundlephobia/min/yieldmarkup@0.1.0" alt="minified size">
+    <img src="https://badgen.net/bundlephobia/dependency-count/yieldmarkup@0.1.0" alt="zero dependencies">
   </a>
 </div>
 
@@ -12,7 +12,7 @@ Lightweight Components using Generator Functions
 ## Install
 
 ```console
-npm add unyielding
+npm add yieldmarkup
 ```
 
 ## Examples
@@ -20,7 +20,7 @@ npm add unyielding
 ### Components
 
 ```javascript
-import { html, renderToString } from "unyielding";
+import { html, renderToString } from "yieldmarkup";
 
 function* NavLink(link) {
   yield html`<li>`;
@@ -57,7 +57,7 @@ const html = await renderToString([PrimaryNav()]);
 ### Attributes
 
 ```javascript
-import { attributes, html } from "unyielding";
+import { attributes, html } from "yieldmarkup";
 
 function CreatePhotoForm() {
   yield html`<form ${attributes({ method: 'post', action: '/photo' })}>`;
@@ -69,7 +69,7 @@ function CreatePhotoForm() {
 ### Data attributes
 
 ```javascript
-import { dataset, html } from "unyielding";
+import { dataset, html } from "yieldmarkup";
 
 function Item({ uuid, title }) {
   yield html`<article ${dataset({ uuid })}>`;
