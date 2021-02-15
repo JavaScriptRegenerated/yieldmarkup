@@ -1,13 +1,12 @@
 <div align="center">
-  <h1>💎 Yield Markup</h1>
+  <h1>👑 📜 Yield Markup</h1>
+  <p>Lightweight Components using Generator Functions</p>
   <a href="https://bundlephobia.com/result?p=yieldmarkup">
     <img src="https://badgen.net/bundlephobia/minzip/yieldmarkup@0.1.0" alt="minified and gzipped size">
     <img src="https://badgen.net/bundlephobia/min/yieldmarkup@0.1.0" alt="minified size">
     <img src="https://badgen.net/bundlephobia/dependency-count/yieldmarkup@0.1.0" alt="zero dependencies">
   </a>
 </div>
-
-Lightweight Components using Generator Functions
 
 ## Install
 
