@@ -2,10 +2,12 @@ import { generateUniqueID } from "./unique";
 
 export type PresentableValue = string | number | Promise<PresentableValue>;
 
+export type SideEffect = { type: string };
+
 const map = { "&": "amp", "<": "lt", ">": "gt", '"': "quot", "'": "#039" };
 function escapeToHTML(input) {
   // return input.replace(/[&<>"']/g, (s) => `&${map[s]};`);
-  return input.replace(/[&<>]/g, (s) => `&${map[s]};`);
+  return input.replace(/[&<>"]/g, (s) => `&${map[s]};`);
 }
 
 function processValue(value) {
@@ -20,7 +22,7 @@ function processValue(value) {
  *
  * @param {Iterable<PresentableValue>} iterable
  */
-export function* renderGenerator(iterable) {
+export function* renderGenerator3(iterable) {
   function* process(child) {
     if (child == null || child === false) return;
 
@@ -34,7 +36,7 @@ export function* renderGenerator(iterable) {
     } else if (typeof child.then === "function") {
       yield child.then((result) => Promise.all(process(result)));
     } else if (child[Symbol.iterator]) {
-      yield* renderGenerator(child);
+      yield* renderGenerator3(child);
     }
   }
 
@@ -47,7 +49,10 @@ export function* renderGenerator(iterable) {
  *
  * @param {Iterable<PresentableValue>} iterable
  */
-export function* renderGenerator2(iterable) {
+export function* renderGenerator(
+  iterable,
+  options: { handleEffect: (effect: SideEffect) => any }
+) {
   const iterator = iterable[Symbol.iterator]();
   let done = false;
   let next;
@@ -69,9 +74,13 @@ export function* renderGenerator2(iterable) {
       // String objects are taken to be html-safe
       yield child;
     } else if (typeof child.then === "function") {
-      yield child.then((result) => Promise.all(renderGenerator([result])));
+      yield child.then((result) =>
+        Promise.all(renderGenerator([result], options))
+      );
     } else if (child[Symbol.iterator]) {
-      yield* renderGenerator(child);
+      yield* renderGenerator(child, options);
+    } else if (typeof child.type === "string") {
+      next = options.handleEffect(child);
     }
   }
 }
@@ -81,8 +90,11 @@ export function* renderGenerator2(iterable) {
  * @param {Generator} children
  * @return {Promise<string>}
  */
-export async function renderToString(children) {
-  const resolved = await Promise.all(renderGenerator(children));
+export async function renderToString(
+  children,
+  options: { handleEffect: (effect: SideEffect) => any } = { handleEffect() {} }
+) {
+  const resolved = await Promise.all(renderGenerator(children, options));
   return resolved.filter(Boolean).join("");
 }
 
@@ -107,9 +119,9 @@ export function* attributes(
     if (count > 0) yield " ";
     yield key;
     yield "=";
-    yield '"';
+    yield html`"`;
     yield value;
-    yield '"';
+    yield html`"`;
     count += 1;
   }
 }

@@ -36,7 +36,7 @@ describe("renderToString()", () => {
 
   test("array of unsafe HTML values", async () => {
     await expect(renderToString([`abc <>&'"`])).resolves.toEqual(
-      `abc &lt;&gt;&amp;'"`
+      `abc &lt;&gt;&amp;'&quot;`
     );
   });
 
@@ -55,7 +55,7 @@ describe("renderToString()", () => {
   test("array of HTML string promises", async () => {
     await expect(
       renderToString([Promise.resolve(`abc <>&'"`), Promise.resolve("def")])
-    ).resolves.toEqual(`abc &lt;&gt;&amp;'"def`);
+    ).resolves.toEqual(`abc &lt;&gt;&amp;'&quot;def`);
   });
 
   test("array of simple string and falsey promises", async () => {
