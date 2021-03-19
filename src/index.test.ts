@@ -172,11 +172,32 @@ describe("renderToString()", () => {
         renderToString([html`<div>Some ${123} number</div>`])
       ).resolves.toEqual("<div>Some 123 number</div>");
     });
+    
+    test("interpolated array", async () => {
+      await expect(
+        renderToString([html`<div>Some ${[123, 'abc']} array</div>`])
+      ).resolves.toEqual("<div>Some 123abc array</div>");
+    });
 
     test("interpolated number promise", async () => {
       await expect(
         renderToString([html`<div>Some ${Promise.resolve(123)} number</div>`])
       ).resolves.toEqual("<div>Some 123 number</div>");
+    });
+    
+    test("interpolated array promise", async () => {
+      await expect(
+        renderToString([html`<div>Some ${Promise.resolve([123, 'abc'])} array</div>`])
+      ).resolves.toEqual("<div>Some 123abc array</div>");
+    });
+    
+    test("interpolated promised component yielding array promise", async () => {
+      function* Example() {
+        yield Promise.resolve([123, 'abc']);
+      }
+      await expect(
+        renderToString([html`<div>Some ${Promise.resolve(Example())} array</div>`])
+      ).resolves.toEqual("<div>Some 123abc array</div>");
     });
 
     test("interpolated HTML is escaped", async () => {

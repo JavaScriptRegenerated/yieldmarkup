@@ -18,6 +18,19 @@ function processValue(value) {
   }
 }
 
+function* flatten(iterable: Iterable<any>) {
+  for (const element of iterable) {
+    if (!Boolean(element)) continue;
+    
+    if (Array.isArray(element)) {
+      yield *flatten(element);
+    } else {
+      yield element; 
+    }
+    
+  }
+}
+
 /**
  *
  * @param {Iterable<PresentableValue>} iterable
@@ -74,9 +87,7 @@ export function* renderGenerator(
       // String objects are taken to be html-safe
       yield child;
     } else if (typeof child.then === "function") {
-      yield child.then((result) =>
-        Promise.all(renderGenerator([result], options))
-      );
+      yield child.then((result) => Promise.all(renderGenerator([].concat(result), options)));
     } else if (child[Symbol.iterator]) {
       yield* renderGenerator(child, options);
     } else if (typeof child.type === "string") {
@@ -95,7 +106,7 @@ export async function renderToString(
   options: { handleEffect: (effect: SideEffect) => any } = { handleEffect() {} }
 ) {
   const resolved = await Promise.all(renderGenerator(children, options));
-  return resolved.filter(Boolean).join("");
+  return Array.from(flatten(resolved)).join("");
 }
 
 export function* html(literals, ...values) {
