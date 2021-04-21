@@ -2,12 +2,14 @@ import { html } from "./index";
 
 export const built: Array<any> = [];
 
-export interface Displayable { toString(): string; }
+export interface Displayable {
+  toString(): string;
+}
 
 function* yieldBuilt() {
   if (built.length === 0) return;
-  yield ' ';
-  yield *built;
+  yield " ";
+  yield* built;
   built.splice(0, Infinity);
 }
 

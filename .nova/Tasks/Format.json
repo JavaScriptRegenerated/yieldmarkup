@@ -1,0 +1,10 @@
+{
+  "actions" : {
+    "build" : {
+      "enabled" : true,
+      "script" : "#!\/usr\/bin\/env bash\nnpx prettier --write \"src\/**\/*.{ts,tsx,js,jsx}\"\n"
+    }
+  },
+  "identifier" : "32F305B5-6A2A-4FA6-967C-04BE79C5A260",
+  "openLogOnRun" : "fail"
+}
