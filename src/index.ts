@@ -4,6 +4,8 @@ export type PresentableValue = string | number | Promise<PresentableValue>;
 
 export type SideEffect = { type: string };
 
+export const safeStringSymbol = Symbol("safeStringSymbol");
+
 const map = { "&": "amp", "<": "lt", ">": "gt", '"': "quot", "'": "#039" };
 function escapeToHTML(input) {
   // return input.replace(/[&<>"']/g, (s) => `&${map[s]};`);
@@ -35,33 +37,6 @@ function* flatten(iterable: Iterable<any>) {
  *
  * @param {Iterable<PresentableValue>} iterable
  */
-export function* renderGenerator3(iterable) {
-  function* process(child) {
-    if (child == null || child === false) return;
-
-    if (typeof child === "string" || typeof child === "number") {
-      yield processValue(child);
-    } else if (child === Symbol.for("unique")) {
-      yield generateUniqueID("unique");
-    } else if (child instanceof String) {
-      // String objects are taken to be html-safe
-      yield child;
-    } else if (typeof child.then === "function") {
-      yield child.then((result) => Promise.all(process(result)));
-    } else if (child[Symbol.iterator]) {
-      yield* renderGenerator3(child);
-    }
-  }
-
-  for (const child of iterable) {
-    yield* process(child);
-  }
-}
-
-/**
- *
- * @param {Iterable<PresentableValue>} iterable
- */
 export function* renderGenerator(
   iterable,
   options: { handleEffect: (effect: SideEffect) => any }
@@ -83,9 +58,8 @@ export function* renderGenerator(
       const id = generateUniqueID("unique");
       next = id;
       yield id;
-    } else if (child instanceof String) {
-      // String objects are taken to be html-safe
-      yield child;
+    } else if (safeStringSymbol in child) {
+      yield child[safeStringSymbol]();
     } else if (typeof child.then === "function") {
       yield child.then((result) => Promise.all(renderGenerator([].concat(result), options)));
     } else if (child[Symbol.iterator]) {
@@ -109,9 +83,17 @@ export async function renderToString(
   return Array.from(flatten(resolved)).join("");
 }
 
+export function safe(input: string) {
+  return {
+    [safeStringSymbol]() {
+      return input;
+    }
+  };
+}
+
 export function* html(literals, ...values) {
   for (let i = 0; i < literals.length; i++) {
-    yield new String(literals[i]); // Mark as html-safe by converting to string object
+    yield safe(literals[i]);
     if (values[i] != null && values[i] !== false) {
       yield values[i];
     }

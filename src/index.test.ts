@@ -129,7 +129,7 @@ describe("renderToString()", () => {
     ).resolves.toEqual("first|abc||def|last");
   });
 
-  test("deeply nested generator functions yielding promises of HTML", async () => {
+  test("deeply nested generator functions yielding promises of strings", async () => {
     function* genPromise() {
       yield Promise.resolve("|gen.promise <>|");
     }
@@ -140,6 +140,19 @@ describe("renderToString()", () => {
     await expect(
       renderToString(["first", genPromiseOuter(), "last"])
     ).resolves.toEqual("first|gen.promise &lt;&gt;|last");
+  });
+
+  test("deeply nested generator functions yielding promises of HTML", async () => {
+    function* genPromise() {
+      yield Promise.resolve(html`|gen.promise <>|`);
+    }
+    function* genPromiseOuter() {
+      yield Promise.resolve(genPromise());
+    }
+
+    await expect(
+      renderToString(["first", genPromiseOuter(), "last"])
+    ).resolves.toEqual("first|gen.promise <>|last");
   });
 
   test("unique", async () => {
