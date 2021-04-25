@@ -159,6 +159,16 @@ describe("renderToString()", () => {
     await expect(
       renderToString([safe("<div>")])
     ).resolves.toEqual("<div>");
+
+    await expect(
+      renderToString([Promise.resolve(safe("<div>"))])
+    ).resolves.toEqual("<div>");
+
+    await expect(
+      renderToString([(function*() {
+        yield Promise.resolve(safe("<div>"))
+      })()])
+    ).resolves.toEqual("<div>");
   });
 
   test("unique", async () => {
