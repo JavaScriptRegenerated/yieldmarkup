@@ -1,4 +1,4 @@
-import { renderToString, html, unique, attributes, dataset } from "./index";
+import { renderToString, html, unique, attributes, dataset, safe } from "./index";
 import { generateUniqueID } from "./unique";
 
 jest.mock("./unique.ts");
@@ -153,6 +153,12 @@ describe("renderToString()", () => {
     await expect(
       renderToString(["first", genPromiseOuter(), "last"])
     ).resolves.toEqual("first|gen.promise <>|last");
+  });
+
+  test("safe()", async () => {
+    await expect(
+      renderToString([safe("<div>")])
+    ).resolves.toEqual("<div>");
   });
 
   test("unique", async () => {
