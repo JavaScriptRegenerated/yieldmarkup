@@ -245,21 +245,39 @@ describe("renderToString()", () => {
   describe("attributes()", () => {
     test("passing object", async () => {
       await expect(
-        renderToString([html`<div ${attributes({ first: '1', second: '2' })}>Some content</div>`])
-      ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
+        renderToString([html`<div ${attributes({ first: '1', second: '2', hidden: true })}>Some content</div>`])
+      ).resolves.toEqual(`<div first="1" second="2" hidden>Some content</div>`);
+    });
+
+    test("passing object with falsey values", async () => {
+      await expect(
+        renderToString([html`<div ${attributes({ first: '1', second: undefined, third: null, fourth: false })}>Some content</div>`])
+      ).resolves.toEqual(`<div first="1">Some content</div>`);
+    });
+
+    test("passing array", async () => {
+      await expect(
+        renderToString([html`<div ${attributes([['first', '1'], ['second', '2'], ['hidden', true]])}>Some content</div>`])
+      ).resolves.toEqual(`<div first="1" second="2" hidden>Some content</div>`);
+    });
+    
+    test("passing array with falsey values", async () => {
+      await expect(
+        renderToString([html`<div ${attributes([['first', '1'], ['second', undefined], ['third', null], ['fourth', false]])}>Some content</div>`])
+      ).resolves.toEqual(`<div first="1">Some content</div>`);
     });
     
     test("passing map", async () => {
       await expect(
         renderToString([html`<div ${attributes(new Map([['first', '1'], ['second', '2']]))}>Some content</div>`])
         ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
-      });
+    });
 
-      test("passing object with promised values", async () => {
-        await expect(
-          renderToString([html`<div ${attributes({ first: Promise.resolve('1'), second: Promise.resolve('2') })}>Some content</div>`])
-        ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
-      });
+    test("passing object with promised values", async () => {
+      await expect(
+        renderToString([html`<div ${attributes({ first: Promise.resolve('1'), second: Promise.resolve('2') })}>Some content</div>`])
+      ).resolves.toEqual(`<div first="1" second="2">Some content</div>`);
+    });
   });
 
   describe("dataset()", () => {

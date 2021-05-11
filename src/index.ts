@@ -1,6 +1,6 @@
 import { generateUniqueID } from "./unique";
 
-export type PresentableValue = string | number | Promise<PresentableValue>;
+export type PresentableValue = string | number | Promise<PresentableValue> | undefined | null | boolean;
 
 export type SideEffect = { type: string };
 
@@ -101,20 +101,34 @@ export function* html(literals, ...values) {
 }
 
 export function* attributes(
-  items: Record<string, PresentableValue> | Iterable<[string, PresentableValue]>
+  items: Record<string, PresentableValue> | Iterable<[string, PresentableValue]> | Array<[string, PresentableValue]>
 ) {
-  const iterable = items[Symbol.iterator]
-    ? (items as Iterable<[string, PresentableValue]>)
+  const iterable: Iterable<[string, PresentableValue]> = items[Symbol.iterator]
+    ? items as any
     : Object.entries(items);
+
+  function* present(key: string, value: PresentableValue) {
+    if (value === false || value == null) return;
+    yield key;
+    if (typeof value === 'string') {
+      yield "=";
+      yield html`"`;
+      yield value;
+      yield html`"`;
+    }
+  }
 
   let count = 0;
   for (const [key, value] of iterable) {
+    if (value === false || value == null) continue;
     if (count > 0) yield " ";
-    yield key;
-    yield "=";
-    yield html`"`;
-    yield value;
-    yield html`"`;
+
+    if (typeof value === 'object' && typeof value.then === 'function') {
+      yield Promise.resolve(value).then(value => Array.from(present(key, value)));
+    } else {
+      yield present(key, value);
+    }
+
     count += 1;
   }
 }
